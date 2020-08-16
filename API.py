@@ -7,8 +7,8 @@ import MySQLdb
 api = Flask(__name__)
 CORS(api)
 
-@api.route('/api/getError', methods=['GET'])
-def get_data():
+@api.route('/api/getError/<int:userId>', methods=['GET'])
+def get_data(userId):
  try:
      # 接続する
      conn = MySQLdb.connect(
@@ -22,7 +22,7 @@ def get_data():
 
      # SQL（データベースを操作するコマンド）を実行する
      # userテーブルから、HostとUser列を取り出す
-     sql = "select * from error where isread = 0"
+     sql = "select * from error where isread = 0 and userid = " + str(userId)
      cur.execute(sql)
 
      # 実行結果を取得する
@@ -38,7 +38,6 @@ def get_data():
      cur.close
      conn.close
 
-     name = "test"
  except Exception as e:
      print(e)
      abort(404)
@@ -46,15 +45,14 @@ def get_data():
  result = {
      "result":True,
      "data":{
-         "name":name,
+         "num":len(rows),
          }
      }
 
 
- return make_response(jsonify(rows))
-
- @api.route('/api/insertData/<int:userId>/<error>', methods=['POST'])
- def insert_data(userId, error):
+ return make_response(jsonify(result))
+@api.route('/api/insertData/<int:userId>/<error>', methods=['POST'])
+def insert_data(userId, error):
   try:
       # 接続する
       conn = MySQLdb.connect(
@@ -70,31 +68,22 @@ def get_data():
       # userテーブルから、HostとUser列を取り出す
 
 
-      sql = "INSERT INTO error (userid) VALUES (" + str(userId) + ")"
+      sql = "INSERT INTO error (userid,errormessage) VALUES (" + str(userId) +",\"" + error + "\")"
       print(sql)
       cur.execute(sql)
 
 
       # 実行結果を取得する
 
+
       cur.close()
       conn.commit()
       conn.close()
-
-      name = "test"
   except Exception as e:
       print(e)
       abort(404)
 
-  result = {
-      "result":True,
-      "data":{
-          "name":name,
-          }
-      }
-
-
-  return make_response(jsonify(rows))
+  return make_response()
 
 
 @api.errorhandler(404)
